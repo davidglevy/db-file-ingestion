@@ -13,7 +13,7 @@ display(df)
 
 # COMMAND ----------
 
-df.write.mode("overwrite").saveAsTable("large_from_csv")
+df.repartition(16).write.mode("overwrite").saveAsTable("large_from_csv")
 
 # COMMAND ----------
 
@@ -24,4 +24,8 @@ csv_tb = DeltaTable.forName(spark, "large_from_csv")
 
 size_gb = mack.delta_file_sizes(csv_tb)['size_in_bytes'] / (1024 * 1024 * 1024)
 reduction_pc = (20 - size_gb) / 20
-print(f"Final size is {round(size_gb, 2)}GB with file reduced by {round(reduction_pc, 2)}%")
+print(f"Final size is {round(size_gb, 2)}GB with file reduced by {round(reduction_pc * 100, 1)}%")
+
+# COMMAND ----------
+
+spark.sql("ANALYZE TABLE large_from_csv COMPUTE STATISTICS")
